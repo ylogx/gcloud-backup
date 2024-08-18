@@ -44,6 +44,7 @@ class GoogleCloudStorageDownloader(object):
             logger.debug(f"Downloading {blob.name} to {temp_path}")
             await asyncio.to_thread(self._sync_download_blob, blob, temp_path)
             os.rename(temp_path, destination_path)
+            self._set_file_times(blob, destination_path)
             logger.debug(f"Downloaded {blob.name} to {destination_path}")
         except Exception as e:
             logger.error(f"Failed to download {blob.name}: {e}")
@@ -53,6 +54,12 @@ class GoogleCloudStorageDownloader(object):
     def _sync_download_blob(self, blob, temp_path):
         with open(temp_path, "wb") as temp_file:
             blob.download_to_file(temp_file)
+
+    def _set_file_times(self, blob, file_path):
+        """Set the access and modification times of the file based on the blob properties"""
+        created_time = blob.time_created.timestamp()
+        updated_time = blob.updated.timestamp()
+        os.utime(file_path, (created_time, updated_time))
 
     def compress_files(self, output_filename=None):
         """Compresses the downloaded files into a tar.zst file"""
