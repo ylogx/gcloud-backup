@@ -1,16 +1,25 @@
-Google Cloud Storage Downloader
-===============================
+Google Cloud Storage Backup
+===========================
+
+Have you gone through the pain of downloading files one-by-one from a Google Cloud Storage bucket?
+
+Easily backup your Google Cloud Storage (GCS) bucket directories to your local machine or NAS with this CLI tool.
+Leveraging Async IO for concurrent downloads, it ensures a fast and efficient download process.
+The tool is fault-tolerant, allowing you to resume downloads after network interruptions.
+It also compresses your files into a single tar file and uses zstd for optimal storage efficiency & speed.
+Try it now to speed up your GCS backup process!
 
 Installation
 ------------
+
 To install the dependencies, run the following command:
 
 ```bash
 make init # Install dependencies and setup poetry virtual environment
 ```
 
-Run
----
+Getting Started
+---------------
 
 ### Usage
 To see the available options, run the following command:
