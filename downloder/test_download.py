@@ -26,15 +26,18 @@ def test_validate_local_download_path(path, expected):
 @pytest.mark.parametrize(
     "path, expected",
     [
-        ("/tmp/gcd/User/Documents/downloder/test", "tmp_gcd_User_Documents_downloder_test.tar"),
-        ("/tmp/gcd/User/Documents/downloder/test/test", "tmp_gcd_User_Documents_downloder_test_test.tar"),
-        ("tmp/gcd/User/Documents/downloder/test/test", "tmp_gcd_User_Documents_downloder_test_test.tar"),
-        ("User/Documents/downloder/test/test", "User_Documents_downloder_test_test.tar"),
+        ("/tmp/gcd/image/assets/downloder/test1", "test1.tar"),
+        ("/tmp/gcd/image/assets/downloder/test/test2", "test2.tar"),
+        ("tmp/gcd/image/assets/downloder/test/test3", "test3.tar"),
+        ("image/assets/downloder/test/test4", "test4.tar"),
     ],
 )
 def test_pathify(path, expected):
     assert download._pathify(path) == expected
 
 
-def test_pathify_empty():
-    assert download._pathify(path="") == cwd.replace("/", "_") + ".tar"
+@pytest.mark.parametrize("path", [None, ""])
+def test_pathify_empty(path):
+    # Ensure throws assertion error exception
+    with pytest.raises(AssertionError):
+        download._pathify(path)
