@@ -51,7 +51,7 @@ class GoogleCloudStorageDownloader(object):
                 os.remove(temp_path)
 
     def _sync_download_blob(self, blob, temp_path):
-        with open(temp_path, 'wb') as temp_file:
+        with open(temp_path, "wb") as temp_file:
             blob.download_to_file(temp_file)
 
     def compress_files(self, output_filename=None):
@@ -60,27 +60,28 @@ class GoogleCloudStorageDownloader(object):
         import zstandard as zstd
 
         if output_filename is None:
-            output_filename = _pathify(output_filename)
+            output_filename = _pathify(self.folder_path)
         logger.info(f"Compressing files in {self.local_download_path} to {output_filename}")
         with tarfile.open(output_filename, "w|") as tar:
             tar.add(self.local_download_path, arcname=os.path.basename(self.local_download_path))
 
-        logger.debug(f"Compressed the tar file using zstandard to {output_filename}")
+        compressed_filename = output_filename + ".zst"
+        logger.debug(f"Compressed the tar file using zstandard to {compressed_filename}")
         with open(output_filename, "rb") as tar_file:
-            with open(f"{output_filename}.zst", "wb") as zst_file:
+            with open(compressed_filename, "wb") as zst_file:
                 cctx = zstd.ZstdCompressor(level=3)  # Compression level can be adjusted
                 cctx.copy_stream(tar_file, zst_file)
 
         os.remove(output_filename)  # Remove the uncompressed tar file
-        logger.debug(f"Compressed to {output_filename}.zst")
-        return output_filename
+        logger.debug(f"Compressed to {compressed_filename}")
+        return compressed_filename
 
 
 def _pathify(path):
     """Replaces a directory / with a valid filename"""
     if not path:
         return os.getcwd().replace("/", "_") + ".tar"
-    output = path.replace("/", "_") + ".tar"
+    output = path.replace("/", "_").rstrip("_") + ".tar"
     return output[1:] if output.startswith("_") else output
 
 
