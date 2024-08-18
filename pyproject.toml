@@ -19,6 +19,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
+aiofiles = "^24.1.0"
 click = "^8.1"
 loguru = "^0.7"
 python-dotenv = "^1.0"

@@ -1,6 +1,6 @@
 import os
-import tarfile
-
+import aiofiles
+import asyncio
 from google.cloud import storage
 from loguru import logger
 
@@ -15,16 +15,17 @@ class GoogleCloudStorageDownloader(object):
 
     def download_and_compress(self, output_filename=None, gcloud_project=None) -> str:
         """Downloads files from a Google Cloud Storage bucket to a local directory and compresses them"""
-        self.download_files(gcloud_project=gcloud_project)
+        asyncio.run(self.download_files(gcloud_project=gcloud_project))
         return self.compress_files(output_filename=output_filename)
 
-    def download_files(self, gcloud_project=None):
+    async def download_files(self, gcloud_project=None):
         """Downloads files from a Google Cloud Storage bucket to a local directory"""
         logger.info(f"Downloading files from {self.bucket_name}/{self.folder_path} to {self.local_download_path}")
         storage_client = storage.Client(project=gcloud_project)
         bucket = storage_client.bucket(self.bucket_name)
         blobs = bucket.list_blobs(prefix=self.folder_path)
 
+        tasks = []
         for blob in blobs:
             if not blob.name.endswith("/"):  # ignore directories
                 destination_path = os.path.join(self.local_download_path, os.path.relpath(blob.name, self.folder_path))
@@ -34,18 +35,28 @@ class GoogleCloudStorageDownloader(object):
 
                 os.makedirs(os.path.dirname(destination_path), exist_ok=True)
                 temp_path = destination_path + ".tmp"
-                try:
-                    with open(temp_path, "wb") as temp_file:
-                        blob.download_to_file(temp_file)
-                    os.rename(temp_path, destination_path)
-                    logger.debug(f"Downloaded {blob.name} to {destination_path}")
-                except Exception as e:
-                    logger.error(f"Failed to download {blob.name}: {e}")
-                    if os.path.exists(temp_path):
-                        os.remove(temp_path)
+                tasks.append(self.download_blob(blob, temp_path, destination_path))
+
+        await asyncio.gather(*tasks)
+
+    async def download_blob(self, blob, temp_path, destination_path):
+        try:
+            logger.debug(f"Downloading {blob.name} to {temp_path}")
+            await asyncio.to_thread(self._sync_download_blob, blob, temp_path)
+            os.rename(temp_path, destination_path)
+            logger.debug(f"Downloaded {blob.name} to {destination_path}")
+        except Exception as e:
+            logger.error(f"Failed to download {blob.name}: {e}")
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+
+    def _sync_download_blob(self, blob, temp_path):
+        with open(temp_path, 'wb') as temp_file:
+            blob.download_to_file(temp_file)
 
     def compress_files(self, output_filename=None):
         """Compresses the downloaded files into a tar.zst file"""
+        import tarfile
         import zstandard as zstd
 
         if output_filename is None:
