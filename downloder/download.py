@@ -6,12 +6,11 @@ from loguru import logger
 
 
 class GoogleCloudStorageDownloader(object):
-    DEFAULT_LOCAL_DATA_PATH = "data"
-
     def __init__(self, bucket_name, folder_path, local_download_path=None):
         self.bucket_name = bucket_name
         self.folder_path = folder_path
-        self.local_download_path = _validate_local_download_path(local_download_path)
+        self.local_download_path = local_download_path
+        self._validate_local_download_path()
 
     def download_and_compress(self, output_filename=None, gcloud_project=None) -> str:
         """Downloads files from a Google Cloud Storage bucket to a local directory and compresses them"""
@@ -83,6 +82,13 @@ class GoogleCloudStorageDownloader(object):
         logger.debug(f"Compressed to {compressed_filename}")
         return compressed_filename
 
+    def _validate_local_download_path(self):
+        if self.local_download_path is None:
+            self.local_download_path = os.path.join(os.getcwd(), os.path.basename(self.folder_path))
+        if not os.path.exists(self.local_download_path):
+            logger.debug(f"Creating directory {self.local_download_path}")
+            os.makedirs(self.local_download_path)
+
 
 def _pathify(path):
     """Replaces a directory / with a valid filename"""
@@ -90,12 +96,3 @@ def _pathify(path):
         return os.getcwd().replace("/", "_") + ".tar"
     output = path.replace("/", "_").rstrip("_") + ".tar"
     return output[1:] if output.startswith("_") else output
-
-
-def _validate_local_download_path(local_download_path=None):
-    if local_download_path is None:
-        local_download_path = os.path.join(os.getcwd(), GoogleCloudStorageDownloader.DEFAULT_LOCAL_DATA_PATH)
-    if not os.path.exists(local_download_path):
-        logger.debug(f"Creating directory {local_download_path}")
-        os.makedirs(local_download_path)
-    return local_download_path
