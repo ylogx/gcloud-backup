@@ -21,8 +21,21 @@ make init # Install dependencies and setup poetry virtual environment
 Getting Started
 ---------------
 
+### Credentials
+
+To authenticate with GCP, you need to set up your credentials.
+You can either set up your credentials using the `gcloud` CLI or
+by setting the `GOOGLE_APPLICATION_CREDENTIALS` environment variable.
+For more information, refer to the [GCP documentation](https://cloud.google.com/docs/authentication/getting-started).
+
+```bash
+export GOOGLE_APPLICATION_CREDENTIALS="${HOME}/.config/gcloud/<your_credentails/adc.json>"
+```
+
 ### Usage
+
 To see the available options, run the following command:
+
 ```bash
 poetry run python run.py --help
 
