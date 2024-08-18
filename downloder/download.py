@@ -13,6 +13,11 @@ class GoogleCloudStorageDownloader(object):
         self.folder_path = folder_path
         self.local_download_path = _validate_local_download_path(local_download_path)
 
+    def download_and_compress(self, output_filename=None, gcloud_project=None) -> str:
+        """Downloads files from a Google Cloud Storage bucket to a local directory and compresses them"""
+        self.download_files(gcloud_project=gcloud_project)
+        return self.compress_files(output_filename=output_filename)
+
     def download_files(self, gcloud_project=None):
         """Downloads files from a Google Cloud Storage bucket to a local directory"""
         logger.info(f"Downloading files from {self.bucket_name}/{self.folder_path} to {self.local_download_path}")

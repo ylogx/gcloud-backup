@@ -16,14 +16,13 @@ def cli():
 @click.option("-l", "--local-download-path", type=str, required=False, help="Local path to download the files")
 @click.option("-o", "--output-filename", type=str, required=False, help="Name of the output file")
 @click.option("-p", "--gcloud-project", type=str, required=False, help="Name of the GCP project")
-def perform(bucket_name, folder_path, local_download_path, output_filename, gcloud_project):
+def cp(bucket_name, folder_path, local_download_path, output_filename, gcloud_project):
     downloader = download.GoogleCloudStorageDownloader(
         bucket_name,
         folder_path,
         local_download_path,
     )
-    downloader.download_files(gcloud_project=gcloud_project)
-    output = downloader.compress_files(output_filename=output_filename)
+    output = downloader.download_and_compress(output_filename=output_filename, gcloud_project=gcloud_project)
     logger.info(f"Compressed files to {output}")
 
 
