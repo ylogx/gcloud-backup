@@ -41,15 +41,18 @@ class GoogleCloudStorageDownloader(object):
 
     async def download_blob(self, blob, temp_path, destination_path):
         try:
-            async with aiofiles.open(temp_path, 'wb') as temp_file:
-                logger.debug(f"Downloading {blob.name} to {temp_path}")
-                blob.download_to_file(temp_file)
+            logger.debug(f"Downloading {blob.name} to {temp_path}")
+            await asyncio.to_thread(self._sync_download_blob, blob, temp_path)
             os.rename(temp_path, destination_path)
             logger.debug(f"Downloaded {blob.name} to {destination_path}")
         except Exception as e:
             logger.error(f"Failed to download {blob.name}: {e}")
             if os.path.exists(temp_path):
                 os.remove(temp_path)
+
+    def _sync_download_blob(self, blob, temp_path):
+        with open(temp_path, 'wb') as temp_file:
+            blob.download_to_file(temp_file)
 
     def compress_files(self, output_filename=None):
         """Compresses the downloaded files into a tar.zst file"""
