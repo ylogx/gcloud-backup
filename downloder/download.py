@@ -14,9 +14,10 @@ class GoogleCloudStorageDownloader(object):
         self.folder_path = folder_path
         self.local_download_path = _validate_local_download_path(local_download_path)
 
-    def download_files(self):
-        logger.debug(f"Downloading files from {self.bucket_name}/{self.folder_path} to {self.local_download_path}")
-        storage_client = storage.Client(project="lineage-sc")
+    def download_files(self, gcloud_project=None):
+        """Downloads files from a Google Cloud Storage bucket to a local directory"""
+        logger.info(f"Downloading files from {self.bucket_name}/{self.folder_path} to {self.local_download_path}")
+        storage_client = storage.Client(project=gcloud_project)
         bucket = storage_client.bucket(self.bucket_name)
         blobs = bucket.list_blobs(prefix=self.folder_path)
 
@@ -28,11 +29,12 @@ class GoogleCloudStorageDownloader(object):
                 logger.debug(f"Downloaded {blob.name} to {destination_path}")
 
     def compress_files(self, output_filename=None):
+        """Compresses the downloaded files into a tar.zst file"""
         import zstandard as zstd
 
         if output_filename is None:
             output_filename = _pathify(output_filename)
-        logger.debug(f"Compressing files in {self.local_download_path} to {output_filename}")
+        logger.info(f"Compressing files in {self.local_download_path} to {output_filename}")
         with tarfile.open(output_filename, "w|") as tar:
             tar.add(self.local_download_path, arcname=os.path.basename(self.local_download_path))
 
