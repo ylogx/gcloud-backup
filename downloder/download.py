@@ -1,5 +1,4 @@
 import os
-import aiohttp
 import aiofiles
 import asyncio
 from google.cloud import storage
@@ -27,32 +26,24 @@ class GoogleCloudStorageDownloader(object):
         blobs = bucket.list_blobs(prefix=self.folder_path)
 
         tasks = []
-        async with aiohttp.ClientSession() as session:
-            for blob in blobs:
-                if not blob.name.endswith("/"):  # ignore directories
-                    destination_path = os.path.join(
-                        self.local_download_path, os.path.relpath(blob.name, self.folder_path)
-                    )
-                    if os.path.exists(destination_path):
-                        logger.info(f"File {destination_path} already exists, skipping download.")
-                        continue
+        for blob in blobs:
+            if not blob.name.endswith("/"):  # ignore directories
+                destination_path = os.path.join(self.local_download_path, os.path.relpath(blob.name, self.folder_path))
+                if os.path.exists(destination_path):
+                    logger.info(f"File {destination_path} already exists, skipping download.")
+                    continue
 
-                    os.makedirs(os.path.dirname(destination_path), exist_ok=True)
-                    temp_path = destination_path + ".tmp"
-                    tasks.append(self.download_blob(session, blob, temp_path, destination_path))
+                os.makedirs(os.path.dirname(destination_path), exist_ok=True)
+                temp_path = destination_path + ".tmp"
+                tasks.append(self.download_blob(blob, temp_path, destination_path))
 
-            await asyncio.gather(*tasks)
+        await asyncio.gather(*tasks)
 
-    async def download_blob(self, session, blob, temp_path, destination_path):
+    async def download_blob(self, blob, temp_path, destination_path):
         try:
-            async with session.get(blob.media_link) as response:
-                response.raise_for_status()
-                async with aiofiles.open(temp_path, "wb") as temp_file:
-                    while True:
-                        chunk = await response.content.read(1024)
-                        if not chunk:
-                            break
-                        await temp_file.write(chunk)
+            async with aiofiles.open(temp_path, 'wb') as temp_file:
+                logger.debug(f"Downloading {blob.name} to {temp_path}")
+                blob.download_to_file(temp_file)
             os.rename(temp_path, destination_path)
             logger.debug(f"Downloaded {blob.name} to {destination_path}")
         except Exception as e:
