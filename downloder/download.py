@@ -79,8 +79,8 @@ class GoogleCloudStorageDownloader(object):
 def _pathify(path):
     """Replaces a directory / with a valid filename"""
     if not path:
-        return os.getcwd().replace("/", "_") + ".tar.zst"
-    output = path.replace("/", "_") + ".tar.zst"
+        return os.getcwd().replace("/", "_") + ".tar"
+    output = path.replace("/", "_") + ".tar"
     return output[1:] if output.startswith("_") else output
 
 
