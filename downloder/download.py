@@ -6,25 +6,18 @@ from loguru import logger
 import tqdm
 import zstandard as zstd
 
-
-def pathify(path):
-    """Replaces a directory / with a valid filename"""
-    if not path:
-        return os.getcwd().replace("/", "_") + ".tar.zst"
-    output = path.replace("/", "_") + ".tar.zst"
-    return output[1:] if output.startswith("_") else output
+DEFAULT_LOCAL_DATA_PATH = "data"
 
 
 def download_files_from_gcs(bucket_name, folder_path, local_download_path=None):
     local_download_path = validate_local_download_path(local_download_path)
     logger.debug(f"Downloading files from {bucket_name}/{folder_path} to {local_download_path}")
 
-    storage_client = storage.Client()
+    storage_client = storage.Client(project="lineage-sc")
     bucket = storage_client.bucket(bucket_name)
     blobs = bucket.list_blobs(prefix=folder_path)
-    logger.debug(f"Found {len(list(blobs))} files in {bucket_name}/{folder_path}")
 
-    for blob in tqdm.tqdm(blobs, desc="Downloading files", unit="files"):
+    for blob in blobs:
         if not blob.name.endswith("/"):  # ignore directories
             destination_path = os.path.join(local_download_path, os.path.relpath(blob.name, folder_path))
             os.makedirs(os.path.dirname(destination_path), exist_ok=True)
@@ -51,10 +44,18 @@ def compress_files_to_zstd_tar(local_download_path=None, output_filename=None):
     return output_filename
 
 
+def pathify(path):
+    """Replaces a directory / with a valid filename"""
+    if not path:
+        return os.getcwd().replace("/", "_") + ".tar.zst"
+    output = path.replace("/", "_") + ".tar.zst"
+    return output[1:] if output.startswith("_") else output
+
+
 def validate_local_download_path(local_download_path=None):
     if local_download_path is None:
-        local_download_path = os.getcwd()
-    elif not os.path.exists(local_download_path):
+        local_download_path = os.path.join(os.getcwd(), DEFAULT_LOCAL_DATA_PATH)
+    if not os.path.exists(local_download_path):
         logger.debug(f"Creating directory {local_download_path}")
         os.makedirs(local_download_path)
     return local_download_path

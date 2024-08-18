@@ -9,7 +9,7 @@ cwd = os.getcwd()
 @pytest.mark.parametrize(
     "path, expected",
     [
-        (None, cwd),
+        (None, cwd + "/data"),
         ("/tmp/gcd/User/Documents/downloder/test", "/tmp/gcd/User/Documents/downloder/test"),
         ("/tmp/gcd/User/Documents/downloder/test/test", "/tmp/gcd/User/Documents/downloder/test/test"),
     ],
