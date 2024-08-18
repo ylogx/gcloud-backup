@@ -11,10 +11,10 @@ def cli():
 
 
 @cli.command()
-@click.argument("bucket_name", type=str)
-@click.argument("folder_path", type=str)
-@click.argument("local_download_path", type=str)
-@click.argument("output_filename", type=str)
+@click.option("-b", "--bucket-name", type=str, required=True, help="Name of the GCS bucket")
+@click.option("-f", "--folder-path", type=str, required=True, help="Path to the folder in the bucket")
+@click.option("-l", "--local-download-path", type=str, required=True, help="Local path to download the files")
+@click.option("-o", "--output-filename", type=str, required=True, help="Name of the output file")
 def perform(bucket_name, folder_path, local_download_path, output_filename):
     logger.info(f"Downloading files from {bucket_name}/{folder_path} to {local_download_path}")
     # Step 1: Download files from GCS
