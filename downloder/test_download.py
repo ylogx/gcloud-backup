@@ -15,7 +15,7 @@ cwd = os.getcwd()
     ],
 )
 def test_validate_local_download_path(path, expected):
-    assert download.validate_local_download_path(local_download_path=path) == expected
+    assert download._validate_local_download_path(local_download_path=path) == expected
     assert os.path.exists(expected)
 
 
@@ -29,8 +29,8 @@ def test_validate_local_download_path(path, expected):
     ],
 )
 def test_pathify(path, expected):
-    assert download.pathify(path) == expected
+    assert download._pathify(path) == expected
 
 
 def test_pathify_empty():
-    assert download.pathify(path="") == cwd.replace("/", "_") + ".tar.zst"
+    assert download._pathify(path="") == cwd.replace("/", "_") + ".tar.zst"

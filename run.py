@@ -17,11 +17,16 @@ def cli():
 @click.option("-o", "--output-filename", type=str, required=False, help="Name of the output file")
 def perform(bucket_name, folder_path, local_download_path, output_filename):
     logger.info(f"Downloading files from {bucket_name}/{folder_path} to {local_download_path}")
+    downloader = download.GoogleCloudStorageDownloader(
+        bucket_name,
+        folder_path,
+        local_download_path,
+    )
     # Step 1: Download files from GCS
-    download.download_files_from_gcs(bucket_name, folder_path, local_download_path)
+    downloader.download_files(bucket_name, folder_path, local_download_path)
 
     # Step 2: Compress the downloaded files into a .tar.zst file
-    output = download.compress_files_to_zstd_tar(local_download_path, output_filename)
+    output = downloader.compress_files(local_download_path, output_filename)
     logger.info(f"Compressed files to {output}")
 
     # Step 3: Cleanup
