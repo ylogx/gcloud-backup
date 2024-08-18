@@ -5,7 +5,6 @@ from google.cloud import storage
 from loguru import logger
 
 
-
 class GoogleCloudStorageDownloader(object):
     DEFAULT_LOCAL_DATA_PATH = "data"
 
@@ -24,9 +23,21 @@ class GoogleCloudStorageDownloader(object):
         for blob in blobs:
             if not blob.name.endswith("/"):  # ignore directories
                 destination_path = os.path.join(self.local_download_path, os.path.relpath(blob.name, self.folder_path))
+                if os.path.exists(destination_path):
+                    logger.info(f"File {destination_path} already exists, skipping download.")
+                    continue
+
                 os.makedirs(os.path.dirname(destination_path), exist_ok=True)
-                blob.download_to_filename(destination_path)
-                logger.debug(f"Downloaded {blob.name} to {destination_path}")
+                temp_path = destination_path + ".tmp"
+                try:
+                    with open(temp_path, "wb") as temp_file:
+                        blob.download_to_file(temp_file)
+                    os.rename(temp_path, destination_path)
+                    logger.debug(f"Downloaded {blob.name} to {destination_path}")
+                except Exception as e:
+                    logger.error(f"Failed to download {blob.name}: {e}")
+                    if os.path.exists(temp_path):
+                        os.remove(temp_path)
 
     def compress_files(self, output_filename=None):
         """Compresses the downloaded files into a tar.zst file"""
