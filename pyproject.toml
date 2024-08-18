@@ -11,9 +11,9 @@ disable = "C0330, C0326"
 profile = 'black'
 
 [tool.poetry]
-name = "python-chassis"
+name = "gcloud-downloader"
 version = "0.0.1"
-description = "Python Chassis code base"
+description = "Google Cloud Storage Downloader"
 authors = ["Shubham Chaudhary <shubham@chaudhary.xyz>"]
 readme = "README.md"
 
@@ -22,6 +22,8 @@ python = "^3.11"
 click = "^8.1"
 loguru = "^0.7"
 python-dotenv = "^1.0"
+google-cloud-storage = "*"
+zstandard = "*"
 
 
 [tool.poetry.group.dev.dependencies]
